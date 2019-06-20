@@ -1,0 +1,128 @@
+BASE=$$HOME/workspace/external-projects
+CMAKE=cmake #$(BASE)/cmake-3.7.0/bld/bin/cmake
+LLVM_GIT_URL=http://llvm.org/git/llvm.git
+CLANG_GIT_URL=http://llvm.org/git/clang.git
+COMPILER_RT_GIT_URL=http://llvm.org/git/compiler-rt.git
+CLANG_TOOLS_EXTRA_GIT_URL=http://llvm.org/git/clang-tools-extra.git
+CLANG_TEST_SUITE_URL=http://llvm.org/git/test-suite.git test-suite
+LLDB_URL=http://llvm.org/git/lldb.git
+LLD_URL=http://llvm.org/git/lld.git
+
+# Instead of configure you can use cmake if package 'ninja-build' is installed.
+#cmake .. -DCMAKE_BUILD_TYPE="MinSizeRel" -DCMAKE_INSTALL_PREFIX="`pwd`" -DLLVM_TARGETS_TO_BUILD="X86"
+#sudo apt-get install build-essential subversion swig libncurses5-dev graphviz doxygen python-epydoc python-dev libedit-dev
+all : 
+	cd $(BASE) && if [ ! -d llvm ];then git clone $(LLVM_GIT_URL);else cd llvm && git pull;fi
+	cd $(BASE)/llvm/tools && if [ ! -d clang ];then git clone $(CLANG_GIT_URL) ;else cd clang && git pull;fi
+	cd $(BASE)/llvm/projects && if [ ! -d compiler-rt ];then git clone $(COMPILER_RT_GIT_URL);else cd compiler-rt && git pull;fi
+	cd $(BASE)/llvm/projects && if [ ! -d test-suite ];then git clone $(CLANG_TEST_SUITE_URL);else cd test-suite && git pull;fi
+	#cd $(BASE)/llvm/tools && if [ ! -d lldb ];then git clone $(LLDB_URL);else cd lldb && git pull;fi; echo "Please note: LLDB needs swig libedit-dev python";
+	#cd $(BASE)/llvm/tools && if [ ! -d lld ];then git clone $(LLD_URL);else cd lld && git pull;fi;
+	cd $(BASE)/llvm/tools/clang/tools && if [ ! -d clang-tools-extra ];then git clone $(CLANG_TOOLS_EXTRA_GIT_URL);else cd clang-tools-extra && git pull;fi
+	#sudo apt-get install cmake ninja-build
+	# See http://llvm.org/docs/CMake.html for available options
+	# CMAKE_BUILD_TYPE = Release | Debug
+	# CMAKE_ENABLE_ASSERTIONS 
+	# BUILD_SHARED_LIBS 
+	# CMAKE_INSTALL_PREFIX = --prefix from ./configure
+	# LLVM_TARGETS_TO_BUILD: Semicolon separated list of targets to build.
+	# To set one of the above options use -DPARAMETER=value 
+	if [ -d $(BASE)/llvm ]; then cd $(BASE)/llvm/;fi; if [ ! -d $(BASE)/llvm/bld ];then mkdir bld; fi; 
+	cd $(BASE)/llvm/bld && \
+	env CC="/usr/bin/gcc" CXX="/usr/bin/g++" $(CMAKE) \
+																			-DCMAKE_BUILD_TYPE="Release"  \
+	                                    -DCMAKE_BUILD_SHARED_LIBS=1 \
+	                                    -DCMAKE_ENABLE_ASSERTIONS=1 \
+	                                    -DLLVM_ENABLE_DOXYGEN=OFF\
+	                                    -DLLVM_ENABLE_LLD=OFF\
+	                                    -DCMAKE_INSTALL_PREFIX="./install" \
+	                                    -DCMAKE_EXECUTABLE_SUFFIX=-git \
+																			-DLLVM_ENABLE_PEDANTIC=ON \
+																			-DCMAKE_EXPORT_COMPILE_COMMANDS=ON ../ && \
+	$(CMAKE) --build . -- -j 8 && \
+	$(CMAKE) --build . --target install && \
+	if [ -f $$HOME/source/perl/has-host-more-than-4gb.pl ]; \
+    then \
+        if [ `$$HOME/source/perl/has-host-more-than-4gb.pl`=="yes" ];then make; else make DEBUG_SYMBOLS=0 ;fi  ; \
+    else  \
+        make; \
+    fi;
+
+# LLDB dependencies:
+# sudo apt-get install swig libedit-dev python
+
+# Building DragonEgg 
+# wget dragonegg-3.3.src.targ.gz
+# tar xfz dragonegg-3.3.src.targ.gz
+# cd  dragonegg-3.3
+# GCC=gcc-4.6 LLVM_CONFIG=/usr/local/llvm/bin/llvm-config make
+# cp -a dragonegg.so /usr/local/llvm/lib
+# gcc-4.6 -fplugin=/usr/local/llvm/lib/dragonegg.so heelo.c -o hello
+#
+#
+clang-6.0.1 : 
+	sudo apt-get install build-essential subversion swig python2.7-dev libedit-dev libncurses5-dev
+	mkdir -p $$HOME/workspace/external-projects/
+	cd $$HOME/workspace/external-projects/
+	mkdir clang/clang-6.0.1
+	cd  clang/clang-6.0.1
+	curl -O http://releases.llvm.org/6.0.1/llvm-6.0.1.src.tar.xz
+	curl -O http://releases.llvm.org/6.0.1/cfe-6.0.1.src.tar.xz
+	curl -O http://releases.llvm.org/6.0.1/compiler-rt-6.0.1.src.tar.xz
+	curl -O http://releases.llvm.org/6.0.1/libcxx-6.0.1.src.tar.xz
+	curl -O http://releases.llvm.org/6.0.1/libcxxabi-6.0.1.src.tar.xz
+	curl -O http://releases.llvm.org/6.0.1/libunwind-6.0.1.src.tar.xz
+	curl -O http://releases.llvm.org/6.0.1/lld-6.0.1.src.tar.xz
+	curl -O http://releases.llvm.org/6.0.1/lldb-6.0.1.src.tar.xz
+	curl -O http://releases.llvm.org/6.0.1/openmp-6.0.1.src.tar.xz
+	curl -O http://releases.llvm.org/6.0.1/polly-6.0.1.src.tar.xz
+	curl -O http://releases.llvm.org/6.0.1/clang-tools-extra-6.0.1.src.tar.xz
+	curl -O http://releases.llvm.org/6.0.1/test-suite-6.0.1.src.tar.xz
+	for i in *.xz;do tar xf $i;done
+	mv llvm-6.0.1.src/ llvm
+	mv cfe-6.0.1.src llvm/tools/clang
+	mv clang-tools-extra-6.0.1.src llvm/tools/clang/tools/extra
+	mv compiler-rt-6.0.1.src llvm/projects/compiler-rt
+	mv libcxx-6.0.1.src llvm/projects/libcxx
+	mv libcxxabi-6.0.1.src llvm/projects/libcxxabi
+	mv openmp-6.0.1.src llvm/projects/openmp
+	mv polly-6.0.1.src llvm/tools/polly
+	mv test-suite-6.0.1.src llvm/projects/test-suite
+	mv libunwind-6.0.1.src llvm/projects/libunwind
+	mv lldb-6.0.1.src llvm/tools/lldb
+	mv lld-6.0.1.src llvm/tools/
+	mkdir llvm-build && cd llvm-build && cmake -GNinja ../llvm && ninja && echo SUCCESS
+
+clang-8.0.0 :
+	echo sudo apt-get install build-essential subversion swig python2.7-dev libedit-dev libncurses5-dev
+	rm -rf $$HOME/workspace/external-projects/clang/clang-8.0.0 && \
+	mkdir -p $$HOME/workspace/external-projects/clang/clang-8.0.0 && \
+	cd $$HOME/workspace/external-projects/clang/clang-8.0.0 && \
+	curl -O http://releases.llvm.org/8.0.0/llvm-8.0.0.src.tar.xz &&\
+	curl -O http://releases.llvm.org/8.0.0/cfe-8.0.0.src.tar.xz &&\
+	curl -O http://releases.llvm.org/8.0.0/compiler-rt-8.0.0.src.tar.xz &&\
+	curl -O http://releases.llvm.org/8.0.0/libcxx-8.0.0.src.tar.xz &&\
+	curl -O http://releases.llvm.org/8.0.0/libcxxabi-8.0.0.src.tar.xz   &&\
+	curl -O http://releases.llvm.org/8.0.0/libunwind-8.0.0.src.tar.xz &&\
+	curl -O http://releases.llvm.org/8.0.0/lld-8.0.0.src.tar.xz &&\
+	curl -O http://releases.llvm.org/8.0.0/lldb-8.0.0.src.tar.xz &&\
+	curl -O http://releases.llvm.org/8.0.0/openmp-8.0.0.src.tar.xz &&\
+	curl -O http://releases.llvm.org/8.0.0/polly-8.0.0.src.tar.xz &&\
+	curl -O http://releases.llvm.org/8.0.0/clang-tools-extra-8.0.0.src.tar.xz &&\
+	curl -O http://releases.llvm.org/8.0.0/test-suite-8.0.0.src.tar.xz && \
+	for i in *.xz;do tar xf $$i;done && echo Files downloaded and extracted in $PWD
+	cd $$HOME/workspace/external-projects/clang/clang-8.0.0 && \
+	mv llvm-8.0.0.src/ llvm &&\
+	mv cfe-8.0.0.src llvm/tools/clang &&\
+	mv clang-tools-extra-8.0.0.src llvm/tools/clang/tools/extra &&\
+	mv compiler-rt-8.0.0.src llvm/projects/compiler-rt &&\
+	mv libcxx-8.0.0.src llvm/projects/libcxx &&\
+	mv libcxxabi-8.0.0.src llvm/projects/libcxxabi &&\
+	mv openmp-8.0.0.src llvm/projects/openmp &&\
+	mv polly-8.0.0.src llvm/tools/polly &&\
+	mv test-suite-8.0.0.src llvm/projects/test-suite &&\
+	mv libunwind-8.0.0.src llvm/projects/libunwind &&\
+	mv lldb-8.0.0.src llvm/tools/lldb &&\
+	mv lld-8.0.0.src llvm/tools/ &&\
+	mkdir llvm-build && cd llvm-build && CC=gcc CXX=g++ cmake -GNinja ../llvm && ninja && echo SUCCESS
+

@@ -1,0 +1,8 @@
+all:
+	../configure CC=gcc-4.9 CXX=g++-4.9 \
+		--enable-bzip2 \
+		--with-pcre \
+		--with-xml=/usr \
+		--enable-llvm 2>&1 && \
+  make -j 4  && \
+	echo OK

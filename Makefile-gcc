@@ -1,0 +1,117 @@
+ENABLE_LANGS=--enable-languages=c,c++,go
+ENABLE_LANGS_WO_GO=--enable-languages=c,c++
+
+gcc-git: 
+	cd $$HOME/workspace/external-projects; \
+	if [ ! -d gcc-git ];then mkdir gcc-git;fi && \
+			cd gcc-git && \
+	if [ ! -d gcc ]; then git clone https://gcc.gnu.org/git/gcc.git && cd gcc; else cd gcc && git pull; fi && \
+	./contrib/download_prerequisites && cd .. &&  \
+	if [ ! -d bld ];then mkdir bld; else rm -rf bld;mkdir bld;fi &&  cd bld &&  \
+	../gcc/configure ${ENABLE_LANGS_WO_GO} CC=clang CXX=clang++ \
+		--prefix=`pwd` \
+		--program-suffix=-git \
+		--disable-multilib \
+		--disable-libgcj &&  \
+	nice -n 19 env LIBRARY_PATH=/usr/lib/`gcc -print-multiarch` CPATH=/usr/include/`gcc -print-multiarch`    \
+		make -j 1 all install && \
+		make html install-html && \
+		echo gcc build ready inside `pwd`
+
+gcc-9.1.0: 
+	cd $$HOME/workspace/external-projects \
+		&& if [ ! -f gcc-9.1.0.tar.xz ];then /usr/bin/wget -N ftp://ftp.gwdg.de/pub/misc/gcc/releases/gcc-9.1.0/gcc-9.1.0.tar.xz ;fi \
+		&& if [ ! -d gcc-9.1.0 ];then tar xfJ gcc-9.1.0.tar.gz ;fi \
+		&& cd gcc-9.1.0 \
+		&& ./contrib/download_prerequisites \
+		&& rm -rf bld && mkdir bld \
+    && cd bld \
+	  && ../configure $(ENABLE_LANGS_WO_GO) --prefix=`pwd` --program-suffix=-9.1.0 --disable-multilib --disable-libgcj \
+		&& nice -n 19 env CC=clang CXX=clang++ make -j 1 all install \
+    && echo gcc build ready inside `pwd`
+
+gcc-8.3.0: 
+	cd $$HOME/workspace/external-projects \
+		&& /usr/bin/wget -N ftp://ftp.gwdg.de/pub/misc/gcc/releases/gcc-8.3.0/gcc-8.3.0.tar.gz \
+		&& tar xfz gcc-8.3.0.tar.gz \
+		&& cd gcc-8.3.0 \
+		&& ./contrib/download_prerequisites \
+		&& mkdir bld \
+    && cd bld \
+	  && ../configure $(ENABLE_LANGS) CXXFLAGS="-O0 -g" CFLAGS="-O0 -g" --prefix=`pwd` --program-suffix=-8.3.0 --disable-multilib --disable-libgcj \
+		&& nice -n 19 env CC=gcc CXX=g++ make -j 8 all install \
+    && echo gcc build ready inside `pwd`
+
+gcc-8.1.0: 
+	cd $$HOME/workspace/external-projects \
+		&& /usr/bin/wget -N ftp://ftp.gwdg.de/pub/misc/gcc/releases/gcc-8.1.0/gcc-8.1.0.tar.gz \
+		&& tar xfz gcc-8.1.0.tar.gz \
+		&& cd gcc-8.1.0 \
+		&& ./contrib/download_prerequisites \
+		&& mkdir bld \
+    && cd bld \
+	  && ../configure $(ENABLE_LANGS) CXXFLAGS="-O0 -g" CFLAGS="-O0 -g" --prefix=`pwd` --program-suffix=-8.1.0 --disable-multilib --disable-libgcj \
+		&& nice -n 19 env CC=gcc CXX=g++ make all install \
+    && echo gcc build ready inside `pwd`
+
+gcc-7.3.0: 
+	cd $$HOME/workspace/external-projects \
+		&& /usr/bin/wget -N ftp://ftp.gwdg.de/pub/misc/gcc/releases/gcc-7.3.0/gcc-7.3.0.tar.gz \
+		&& tar xfz gcc-7.3.0.tar.gz \
+		&& cd gcc-7.3.0 \
+		&& ./contrib/download_prerequisites \
+		&& mkdir bld \
+    && cd bld \
+	  && ../configure $(ENABLE_LANGS) CXXFLAGS="-O0 -g" CFLAGS="-O0 -g" --prefix=`pwd` --program-suffix=-7.3.0 --disable-multilib --disable-libgcj \
+		&& nice -n 19 env CC=gcc CXX=g++ make all install \
+    && echo gcc build ready inside `pwd`
+
+gcc-6.2.0: 
+	cd $$HOME/workspace/external-projects/gcc-6.2.0 &&  \
+    mkdir bld && \
+	./contrib/download_prerequisites && \
+    cd bld && \
+	../configure CXXFLAGS="-O0 -g" CFLAGS="-O0 -g" --prefix=`pwd` --program-suffix=-6.2.0 --disable-multilib --disable-libgcj &&  \
+	nice -n 19 env CC=clang CXX=clang++ make all install && \
+	echo gcc build ready inside `pwd`
+
+gcc-6.1.0: 
+	cd $$HOME/workspace/external-projects/gcc-6.1.0 &&  \
+    mkdir bld && \
+	./contrib/download_prerequisites && \
+    cd bld && \
+	../configure CXXFLAGS="-O0 -g" CFLAGS="-O0 -g" --prefix=`pwd` --program-suffix=-6.1.0 --disable-multilib --disable-libgcj &&  \
+	nice -n 19 env LIBRARY_PATH=/usr/lib/`gcc -print-multiarch` CPATH=/usr/include/`gcc -print-multiarch` make all install && \
+	echo gcc build ready inside `pwd`
+
+
+gcc-5.3.0: 
+	cd $$HOME/workspace/external-projects/gcc-5.3.0 &&  \
+    mkdir bld && \
+	./contrib/download_prerequisites && \
+    cd bld && \
+	../configure CXXFLAGS="-O0 -g" CFLAGS="-O0 -g" --prefix=`pwd` --program-suffix=-5.3.0 --disable-multilib --disable-libgcj &&  \
+	nice -n 19 env LIBRARY_PATH=/usr/lib/`gcc -print-multiarch` CPATH=/usr/include/`gcc -print-multiarch` make all install && \
+	echo gcc build ready inside `pwd`
+
+gcc-5.2.0: 
+	#cd .. && ./contrib/download_prerequisites && cd bld &&  
+	../configure CXXFLAGS="-O0 -g" CFLAGS="-O0 -g" --prefix=`pwd` --program-suffix=-5.2.0 --disable-multilib --disable-libgcj &&  \
+	nice -n 19 env LIBRARY_PATH=/usr/lib/`gcc -print-multiarch` CPATH=/usr/include/`gcc -print-multiarch` make all install && \
+	echo gcc build ready inside `pwd`
+
+gcc-5.1.0: 
+	cd .. && ./contrib/download_prerequisites && cd bld &&  \
+	../configure CXXFLAGS="-O0 -g" CFLAGS="-O0 -g" --prefix=`pwd` --program-suffix=-5.1.0 --disable-multilib --disable-libgcj &&  \
+	nice -n 19 env LIBRARY_PATH=/usr/lib/`gcc -print-multiarch` CPATH=/usr/include/`gcc -print-multiarch` make all install && \
+	echo gcc build ready inside `pwd`
+
+gcc-4.9.0: 
+	../configure CXXFLAGS="-O0 -g" CFLAGS="-O0 -g" --prefix=`pwd` --program-suffix=-4.9.0 --disable-multilib --disable-libgcj &&  nice -n 19 env LIBRARY_PATH=/usr/lib/`gcc -print-multiarch` CPATH=/usr/include/`gcc -print-multiarch`    make all install && echo gcc build ready inside `pwd`
+
+gcc-upc: 
+	../configure --prefix=`pwd` --program-suffix=-upc --enable-languages=upc --disable-multilib --disable-libgcj &&  nice -n 19 make all install && echo gcc build ready inside `pwd`
+
+
+
+.PHONY: gcc-svn gcc-5.1.0 gcc-4.9.0 gcc-8.3.0 gcc-9.1.0
